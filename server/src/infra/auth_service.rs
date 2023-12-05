@@ -344,11 +344,16 @@ where
     let token = create_jwt(&data.jwt_key, name.to_string(), groups);
     let refresh_token_plus_name = refresh_token + "+" + name.as_str();
 
+    let mut path = data.server_url.path().to_string();
+    if path != "/" {
+        path.push('/');
+    };
+
     Ok(HttpResponse::Ok()
         .cookie(
             Cookie::build("token", token.as_str())
                 .max_age(1.days())
-                .path("/")
+                .path(&path)
                 .http_only(true)
                 .same_site(SameSite::Strict)
                 .finish(),
@@ -356,7 +361,7 @@ where
         .cookie(
             Cookie::build("refresh_token", refresh_token_plus_name.clone())
                 .max_age(max_age.num_days().days())
-                .path("/auth")
+                .path(format!("{}auth", path))
                 .http_only(true)
                 .same_site(SameSite::Strict)
                 .finish(),
